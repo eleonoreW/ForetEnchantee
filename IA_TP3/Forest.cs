@@ -48,7 +48,7 @@ namespace IA_TP3
 			do {
 				portalI = r.Next(size);
 				portalJ = r.Next(size);
-			} while (!cells[portalI,portalJ].IsElement(Element.Nothing));
+			} while (!cells[portalI, portalJ].IsElement(Element.Nothing));
 
 			cells[portalI, portalJ].SetElement(Element.Portal);
 		}
@@ -109,14 +109,29 @@ namespace IA_TP3
 			}
 		}
 
+
 		public void Log()
 		{
+			string str;
 			for (int i = 0; i < size; i++) {
-				for (int j = 0; j < size; j++) {
-					Console.Write(cells[i, j].ToString() + "   ");
+				Console.WriteLine(new string('-', size * 7 + 1));
+				for (int k = 0; k < 3; k++) {
+					for (int j = 0; j < size; j++) {
+						str = "";
+						if (j == 0) {
+							str += "|";
+						}
+						str += cells[i, j].ToString(k);
+						str += "|";
+						Console.Write(str);
+					}
+					if (k != 2) {
+						Console.WriteLine();
+					}
 				}
 				Console.WriteLine();
 			}
+			Console.WriteLine(new string('-', size * 7 + 1));
 		}
 	}
 }

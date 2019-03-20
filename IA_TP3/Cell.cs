@@ -43,37 +43,26 @@ namespace IA_TP3
 			impacts.Add(i);
 		}
 
-		override public string ToString()
+		public string ToString(int rowIndex)
 		{
 			string str = "";
 
-			switch (element) {
-				case Element.Start:
-					str += "D";
+			switch (rowIndex) {
+				case 0:
+					str += impacts.Contains(Impact.Smell) ? "S " : "  ";
+					str += element == Element.Start ? "D " : "  ";
+					str += impacts.Contains(Impact.Wind) ? "W " : "  ";
 					break;
-				case Element.Monster:
-					str += "M";
+				case 1:
+					str += element == Element.Monster ? "M " : "  ";
+					str += "  "; // Affichage pêrsonnage
+					str += element == Element.Trap ? "T " : "  ";
 					break;
-				case Element.Trap:
-					str += "T";
+				case 2:
+					str += impacts.Contains(Impact.Smell) ? "S " : "  ";
+					str += element == Element.Portal ? "P " : "  ";
+					str += impacts.Contains(Impact.Wind) ? "W " : "  ";
 					break;
-				case Element.Portal:
-					str += "P";
-					break;
-				default:
-					str += "_";
-					break;
-			}
-
-			foreach(Impact impact in impacts) {
-				switch (impact) {
-					case Impact.Smell:
-						str += "S";
-						break;
-					case Impact.Wind:
-						str += "W";
-						break;
-				}
 			}
 
 			return str;
