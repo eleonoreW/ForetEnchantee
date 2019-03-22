@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IA_TP3
 {
 	class Forest
 	{
 		readonly int size;
-		Cell[,] cells;
+		static Cell[,] cells;
 
 		readonly double monsterSpawnPercent = 0.1;
 		readonly double trapSpawnPercent = 0.1;
@@ -79,6 +75,7 @@ namespace IA_TP3
 
 		private void UpdateCells()
 		{
+            ClearImpacts();
 			for (int i = 0; i < size; i++) {
 				for (int j = 0; j < size; j++) {
 					switch (cells[i, j].GetElement()) {
@@ -88,12 +85,26 @@ namespace IA_TP3
 						case Element.Trap:
 							AddImpactToNeighbors(i, j, Impact.Wind);
 							break;
-					}
+                        case Element.Portal:
+                            cells[i,j].AddImpact(Impact.Light);
+                            break;
+                    }
 				}
 			}
 		}
 
-		private void AddImpactToNeighbors(int posI, int posJ, Impact impact)
+        private void ClearImpacts()
+        {
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    getCell(i, j).GetImpacts().Clear();
+                }
+            }
+        }
+
+        private void AddImpactToNeighbors(int posI, int posJ, Impact impact)
 		{
 			if (posI > 0) {
 				cells[posI - 1, posJ].AddImpact(impact);
@@ -118,5 +129,17 @@ namespace IA_TP3
 				Console.WriteLine();
 			}
 		}
+
+        public static Cell getCell(int i, int j)
+        {
+           
+            return cells[i, j];
+        }
+
+        public ProcessAction()
+        {
+
+        }
+
 	}
 }

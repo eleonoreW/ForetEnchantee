@@ -10,16 +10,30 @@ namespace IA_TP3
 	{
 		static void Main(string[] args)
 		{
+            Agent agent = new Agent();
+            int forestSize = 3;
 			while(true) {
-				Generate();
-				Console.ReadKey();
+				Generate(forestSize);
+                agent.ProchaineAction();
+                if(Forest.getCell(Agent.posI,Agent.posJ).GetElement() == Element.Portal)
+                {
+                    forestSize++;
+                    Generate(forestSize);
+                    agent = new Agent();
+
+                } else if (Forest.getCell(Agent.posI, Agent.posJ).IsElement(Element.Monster) || Forest.getCell(Agent.posI, Agent.posJ).IsElement(Element.Trap))
+                {
+                    Generate(forestSize);
+                    agent = new Agent();
+                }
+                Console.ReadKey();
 				Console.Clear();
 			}
 		}
 
-		static void Generate()
+		static void Generate(int size)
 		{
-			Forest f = new Forest(5);
+			Forest f = new Forest(size);
 			f.Log();
 		}
 	}

@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace IA_TP3
 {
-	enum Element { Nothing, Start, Monster, Trap, Portal }
-	enum Impact { Smell, Wind }
-
 	class Cell
 	{
 		private int posI, posJ;
@@ -78,5 +71,11 @@ namespace IA_TP3
 
 			return str;
 		}
-	}
+
+        public HashSet<Impact> GetImpacts()
+        {
+            return impacts;
+        }
+
+    }
 }
