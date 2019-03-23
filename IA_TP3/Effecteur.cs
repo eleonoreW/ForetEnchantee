@@ -1,47 +1,63 @@
-﻿namespace IA_TP3
+﻿using System;
+
+namespace IA_TP3
 {
     class Effecteur
     {
-        public void faire(Action a, int i, int j)
+        Environement env;
+        Agent agent;
+
+        public Effecteur(Environement env, Agent agent)
         {
-			// Notifier l'environnement de l'action effectuée - action a la position i,j
-		    Forest.ProcessAction(a, i, j);
-            // Modifier l'état interne du robot (son score et ses croyances)
-            switch (a)
+            this.env = env;
+            this.agent = agent;
+        }
+
+        public void Fait(Tuple<int, int> pos, Action action, Direction direction)
+        {
+            env.informe(action, direction); // il connait pos en demandant directement à l'agent
+
+            if (agent.IsLive())
             {
-                case Action.HAUT:
-                    Agent.perf--;
-                    if (j > 0)
-                        Agent.posJ--;
-                    break;
-                case Action.BAS:
-                    Agent.perf--;
-                    if (j < Rules.height - 1)
-                        Agent.posJ++;
-                    break;
-                case Action.GAUCHE:
-                    Agent.perf--;
-                    if (i > 0)
-                        Agent.posI--;
-                    break;
-                case Action.DROITE:
-                    Agent.perf--;
-                    if (i < Rules.width - 1)
-                        Agent.posI++;
-                    break;
-                case Action.ASPIRER:
-                    Agent.perf--;
-                    Agent.perf += Rules.GainAspirer(Agent.croyance[i, j]);
-                    Agent.croyance[i, j] = 0;
-                    break;
-                case Action.RAMASSER:
-                    Agent.perf--;
-                    Agent.perf += Rules.GainRamasser(Agent.croyance[i, j]);
-                    Agent.croyance[i, j] = 0;
-                    break;
-                default:
-                    break;
+                if (action.Equals(Action.LANCER_PIERRE))
+                {
+                    switch (direction)
+                    {
+                        case Direction.HAUT:
+                            agent.tirMonstre(new Tuple<int,int>(pos.Item1 - 1, pos.Item2));
+                            break;
+                        case Direction.BAS:
+                            agent.tirMonstre(new Tuple<int,int>(pos.Item1 + 1, pos.Item2));
+                            break;
+                        case Direction.GAUCHE:
+                            agent.tirMonstre(new Tuple<int,int>(pos.Item1, pos.Item2 - 1));
+                            break;
+                        case Direction.DROITE:
+                            agent.tirMonstre(new Tuple<int,int>(pos.Item1, pos.Item2 + 1));
+                            break;
+                    }
+                }
+
+                if (action.Equals(Action.SE_DEPLACER))
+                {
+                    switch (direction)
+                    {
+                        case Direction.HAUT:
+                            agent.setPosition(new Tuple<int,int>(pos.Item1 - 1, pos.Item2));
+                            break;
+                    case Direction.BAS:
+                            agent.setPosition(new Tuple<int,int>(pos.Item1 + 1, pos.Item2));
+                            break;
+                    case Direction.GAUCHE:
+                            agent.setPosition(new Tuple<int,int>(pos.Item1, pos.Item2 - 1));
+                            break;
+                    case Direction.DROITE:
+                            agent.setPosition(new Tuple<int,int>(pos.Item1, pos.Item2 + 1));
+                            break;
+                    }
+                }
             }
+
         }
     }
 }

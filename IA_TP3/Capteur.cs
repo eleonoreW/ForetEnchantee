@@ -9,13 +9,16 @@ namespace IA_TP3
 {
     class Capteur 
     {
+        internal Forest forest;
+
+        public Capteur(Forest Forest)
+        {
+            this.forest = Forest;
+        }
+
         public Capteur()
         {
         }
-
-        public HashSet<Impact> Feel(int i, int j)
-        {
-            return Forest.getCell(i, j).GetImpacts();
-        }
+        
     }
 }

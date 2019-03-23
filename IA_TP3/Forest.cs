@@ -2,144 +2,142 @@
 
 namespace IA_TP3
 {
-	class Forest
-	{
-		readonly int size;
-		static Cell[,] cells;
+    public class Forest
+    {
 
-		readonly double monsterSpawnPercent = 0.1;
-		readonly double trapSpawnPercent = 0.1;
+        readonly int size;               // size de départ initialisée à 3
+        static ElementCell[,] forest;
 
-
-		public Forest(int size_)
-		{
-			size = size_;
-			cells = new Cell[size_, size_];
-
-			DeclareForest();
-
-			Random r = new Random();
-			PlacePortal(r);
-			PlaceMonsters(r);
-			PlaceTraps(r);
-
-			UpdateCells();
-		}
-
-		private void DeclareForest()
-		{
-			for (int i = 0; i < size; i++) {
-				for (int j = 0; j < size; j++) {
-					cells[i, j] = new Cell(i, j);
-				}
-			}
-			cells[0, 0].SetElement(Element.Start);
-		}
-
-		private void PlacePortal(Random r)
-		{
-			int portalI;
-			int portalJ;
-
-			do {
-				portalI = r.Next(size);
-				portalJ = r.Next(size);
-			} while (!cells[portalI,portalJ].IsElement(Element.Nothing));
-
-			cells[portalI, portalJ].SetElement(Element.Portal);
-		}
-
-		private void PlaceMonsters(Random r)
-		{
-			for (int i = 0; i < size; i++) {
-				for (int j = 0; j < size; j++) {
-					Cell current = cells[i, j];
-					if (r.NextDouble() < monsterSpawnPercent && current.IsElement(Element.Nothing)) {
-						current.SetElement(Element.Monster);
-					}
-				}
-			}
-		}
-
-		private void PlaceTraps(Random r)
-		{
-			for (int i = 0; i < size; i++) {
-				for (int j = 0; j < size; j++) {
-					Cell current = cells[i, j];
-					if (r.NextDouble() < trapSpawnPercent && current.IsElement(Element.Nothing)) {
-						current.SetElement(Element.Trap);
-					}
-				}
-			}
-		}
-
-		private void UpdateCells()
-		{
-            ClearImpacts();
-			for (int i = 0; i < size; i++) {
-				for (int j = 0; j < size; j++) {
-					switch (cells[i, j].GetElement()) {
-						case Element.Monster:
-							AddImpactToNeighbors(i, j, Impact.Smell);
-							break;
-						case Element.Trap:
-							AddImpactToNeighbors(i, j, Impact.Wind);
-							break;
-                        case Element.Portal:
-                            cells[i,j].AddImpact(Impact.Light);
-                            break;
-                    }
-				}
-			}
-		}
-
-        private void ClearImpacts()
+        public Forest(int size_)
         {
+            size = size_;
+            forest = new ElementCell[size_, size_];
+            RemplieForest();
+
+        }
+
+        private void RemplieForest()
+        {
+            // Place le portail et le obstacles aléatoirement
+            Random rand = new Random();
+            int randomValeur;
             for (int i = 0; i < size; i++)
-            {
                 for (int j = 0; j < size; j++)
                 {
-                    getCell(i, j).GetImpacts().Clear();
+                    randomValeur = rand.Next(10);
+                    if (randomValeur < 2 && (i != 0 || j != 0)) // si 0 ou 1
+                        forest[i, j] = ElementCell.MONSTRE;
+                    else if (randomValeur >= 2 && randomValeur < 4 && (i != 0 || j != 0)) // si 2 ou 3
+                        forest[i, j] = ElementCell.CREVASSE;
+                    else
+                        forest[i, j] = ElementCell.VIDE;
                 }
-            }
+
+            // placer portail
+            int randomLigne = rand.Next(size);
+            int randomCol = rand.Next(size);
+            forest[randomLigne, randomCol] = ElementCell.PORTAIL;
+
+            // place les vents autour des crevasses
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                {
+                    if (forest[i, j].Equals(ElementCell.CREVASSE))
+                    {
+                        // HAUT
+                        if (i > 0)
+                        {
+                            if (!forest[i - 1, j].Equals(ElementCell.MONSTRE) && !forest[i - 1, j].Equals(ElementCell.PORTAIL))
+                                forest[i - 1, j] = ElementCell.VENT;
+                        }
+                        // BAS
+                        if (i < size - 1)
+                        {
+                            if (!forest[i + 1, j].Equals(ElementCell.MONSTRE) && !forest[i + 1, j].Equals(ElementCell.PORTAIL))
+                                forest[i + 1, j] = ElementCell.VENT;
+                        }
+                        // GAUCHE
+                        if (j > 0)
+                        {
+                            if (!forest[i, j - 1].Equals(ElementCell.MONSTRE) && !forest[i, j - 1].Equals(ElementCell.PORTAIL))
+                                forest[i, j - 1] = ElementCell.VENT;
+                        }
+                        // DROITE
+                        if (j < size - 1)
+                        {
+                            if (!forest[i, j + 1].Equals(ElementCell.MONSTRE) && !forest[i, j + 1].Equals(ElementCell.PORTAIL))
+                                forest[i, j + 1] = ElementCell.VENT;
+                        }
+                    }
+                }
+
+            // place les cacas autour des crevasses
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                {
+                    if (forest[i, j].Equals(ElementCell.MONSTRE))
+                    {
+                        // HAUT
+                        if (i > 0)
+                        {
+                            if (!forest[i - 1, j].Equals(ElementCell.CREVASSE) && !forest[i - 1, j].Equals(ElementCell.PORTAIL))
+                                if (forest[i - 1, j].Equals(ElementCell.VENT))
+                                    forest[i - 1, j] = ElementCell.CACA_VENT;
+                                else
+                                    forest[i - 1, j] = ElementCell.CACA;
+                        }
+                        // BAS
+                        if (i < size - 1)
+                        {
+                            if (!forest[i + 1, j].Equals(ElementCell.CREVASSE) && !forest[i + 1, j].Equals(ElementCell.PORTAIL))
+                                if (forest[i + 1, j].Equals(ElementCell.VENT))
+                                    forest[i + 1, j] = ElementCell.CACA_VENT;
+                                else
+                                    forest[i + 1, j] = ElementCell.CACA;
+                        }
+                        // GAUCHE
+                        if (j > 0)
+                        {
+                            if (!forest[i, j - 1].Equals(ElementCell.CREVASSE) && !forest[i, j - 1].Equals(ElementCell.PORTAIL))
+                                if (forest[i, j - 1].Equals(ElementCell.VENT))
+                                    forest[i, j - 1] = ElementCell.CACA_VENT;
+                                else
+                                    forest[i, j - 1] = ElementCell.CACA;
+                        }
+                        // DROITE
+                        if (j < size - 1)
+                        {
+                            if (!forest[i, j + 1].Equals(ElementCell.CREVASSE) && !forest[i, j + 1].Equals(ElementCell.PORTAIL))
+                                if (forest[i, j + 1].Equals(ElementCell.VENT))
+                                    forest[i, j + 1] = ElementCell.CACA_VENT;
+                                else
+                                    forest[i, j + 1] = ElementCell.CACA;
+                        }
+                    }
+                }
         }
 
-        private void AddImpactToNeighbors(int posI, int posJ, Impact impact)
-		{
-			if (posI > 0) {
-				cells[posI - 1, posJ].AddImpact(impact);
-			}
-			if (posI < size - 1) {
-				cells[posI + 1, posJ].AddImpact(impact);
-			}
-			if (posJ > 0) {
-				cells[posI, posJ - 1].AddImpact(impact);
-			}
-			if (posJ < size - 1) {
-				cells[posI, posJ + 1].AddImpact(impact);
-			}
-		}
-
-		public void Log()
-		{
-			for (int i = 0; i < size; i++) {
-				for (int j = 0; j < size; j++) {
-					Console.Write(cells[i, j].ToString() + "   ");
-				}
-				Console.WriteLine();
-			}
-		}
-
-        public static Cell getCell(int i, int j)
+        public ElementCell[,] getCarte()
         {
-           
-            return cells[i, j];
+            return forest;
         }
 
-        public ProcessAction()
+        public ElementCell GetCell(Tuple<int, int> coordonnees)
         {
-
+            if (coordonnees.Item1 < 0 || coordonnees.Item1 >= size || coordonnees.Item2 < 0 || coordonnees.Item2 >= size)
+                return ElementCell.NULL;
+            return forest[coordonnees.Item1, coordonnees.Item2];
         }
 
-	}
+        public int GetSize()
+        {
+            return size;
+        }
+
+        public void SetCell(Tuple<int, int> pos, ElementCell element)
+        {
+            forest[pos.Item1, pos.Item2] = element;
+        }
+
+    }
 }
