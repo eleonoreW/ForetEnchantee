@@ -13,9 +13,9 @@ namespace IA_TP3
 
         }
 
-        public bool sonder(Tuple<int, int> pos)
+        public bool Sonder(Tuple<int, int> pos)
         {
-            return forest.GetCell(pos).Equals(ElementCell.CACA) || forest.GetCell(pos).Equals(ElementCell.CACA_VENT);
+            return forest.GetCell(pos).Equals(ElementCell.SMELL) || forest.GetCell(pos).Equals(ElementCell.SMELL_WIND);
         }
     }
 }

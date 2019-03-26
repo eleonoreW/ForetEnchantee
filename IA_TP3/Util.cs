@@ -6,43 +6,44 @@ using System.Threading.Tasks;
 
 namespace IA_TP3
 {
-    public enum Element { Nothing, Start, Monster, Trap, Portal }
-    public enum Impact { Smell, Wind, Light }
     public enum Action
     {
-        SE_DEPLACER,
-        LANCER_PIERRE,
-        PRENDRE_PORTAIL,
-        MOURIR
+        MOVE,
+        LAUNCH_ROCK,
+        TAKE_PORTAL,
+        DIE
     }
     public enum Direction {
-    HAUT,
-    BAS,
-    GAUCHE,
-    DROITE,
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
         NULL
     }
     public enum ElementCell {
-    VIDE,
-    PORTAIL,
-    MONSTRE,
-    CREVASSE,
-    CACA,
-    VENT,
-    CACA_VENT,
-    NULL
+        EMPTY,
+        PORTAL,
+        MONSTER,
+        TRAP,
+        SMELL,
+        WIND,
+        SMELL_WIND,
+        NULL
     }
-
-    public enum ConnaissanceCell { SANS_RISQUE, MONSTRE, CREVASSE,PORTAIL }
+    public enum BeliefCell {
+        NO_RISK,
+        MONSTER,
+        TRAP,
+        PORTAL }
     public enum Faits {
-    Cell_BUT_ATTEINTE,
-    FRONTIERE_CONTIENT_INCONNU_SUR,
-    FRONTIERE_CONTIENT_MENACE_MONSTRE,
-    FRONTIERE_CONTIENT_MENACE_INCONNUE,
-    FRONTIERE_CONTIENT_MENACE_CREVASSE,
-    PORTAIL_PRESENT,
-    NOUVEAUX_VOISINS_OBSERVE,
-    RISQUE_DE_MONSTRE
+        GOAL_CELL_REACHED,
+        FRONTIERE_CONTIENT_INCONNU_SUR,
+        FRONTIERE_CONTIENT_MENACE_MONSTER,
+        FRONTIERE_CONTIENT_MENACE_INCONNUE,
+        FRONTIERE_CONTIENT_MENACE_TRAP,
+        PORTAL_PRESENT,
+        NOUVEAUX_VOISINS_OBSERVE,
+        RISQUE_DE_MONSTER
     }
 
 }

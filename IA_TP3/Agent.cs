@@ -7,20 +7,20 @@ namespace IA_TP3
     {
         private CapteurLumiere oeil;
         private CapteurOdeur nez;
-        private CapteurVent peau;
+        private CapteurVent oreille;
         private bool isLive;
 
         private Tuple<int, int> position;
         private ElementCell elementPosition;
         private Dictionary<Direction, bool> voisinsPossible;
 
-        private Dictionary<Tuple<int, int>, ConnaissanceCell> croyance;
+        private Dictionary<Tuple<int, int>, BeliefCell> croyance;
 
         private List<Faits> faits;
 
         // FRONTIERE
         private List<Tuple<int, int>> CellsMonstreSuspect;
-        private List<Tuple<int, int>> CellsCrevasseSuspecte;
+        private List<Tuple<int, int>> CellsTrapSuspect;
         private List<Tuple<int, int>> CellsInconnuesSuspecte;
         private List<Tuple<int, int>> CellsInconnuesInnofensives;
 
@@ -30,18 +30,18 @@ namespace IA_TP3
 
         public Agent(Environement env)
         {
-            croyance = new Dictionary<Tuple<int, int>, ConnaissanceCell>(); // la croyance est une carte de la Forest vide
+            croyance = new Dictionary<Tuple<int, int>, BeliefCell>(); // la croyance est une carte de la Forest EMPTY
             oeil = new CapteurLumiere(env.GetForest());
             nez = new CapteurOdeur(env.GetForest());
-            peau = new CapteurVent(env.GetForest());
+            oreille = new CapteurVent(env.GetForest());
             isLive = true;
 
             Effecteur = new Effecteur(env, this);
 
-            position = new Tuple<int, int>(0, 0); // l'agent se positionne toujours en haut à gauche au départ
+            position = new Tuple<int, int>(0, 0); // l'agent se positionne toujours en UP à LEFT au départ
 
             CellsMonstreSuspect = new List<Tuple<int, int>>();
-            CellsCrevasseSuspecte = new List<Tuple<int, int>>();
+            CellsTrapSuspect = new List<Tuple<int, int>>();
             CellsInconnuesInnofensives = new List<Tuple<int, int>>();
             CellsInconnuesSuspecte = new List<Tuple<int, int>>();
 
@@ -77,26 +77,26 @@ namespace IA_TP3
         private void sonderEnvironement()
         {
             // Cell vide par defaut
-            croyance[new Tuple<int, int>(position.Item1, position.Item2)] =  ConnaissanceCell.SANS_RISQUE;
-            elementPosition = ElementCell.VIDE;
+            croyance[new Tuple<int, int>(position.Item1, position.Item2)] =  BeliefCell.NO_RISK;
+            elementPosition = ElementCell.EMPTY;
             bool menaceMonstre = false;
 
-            if (oeil.sonder(position))
+            if (oeil.Sonder(position))
             {
-                croyance[new Tuple<int, int>(position.Item1, position.Item2)] = ConnaissanceCell.PORTAIL;
-                elementPosition = ElementCell.PORTAIL;
+                croyance[new Tuple<int, int>(position.Item1, position.Item2)] = BeliefCell.PORTAL;
+                elementPosition = ElementCell.PORTAL;
             }
-            if (nez.sonder(position))
+            if (nez.Sonder(position))
             {
-                elementPosition = ElementCell.CACA;
+                elementPosition = ElementCell.SMELL;
                 menaceMonstre = true;
             }
-            if (peau.sonder(position))
+            if (oreille.Sonder(position))
             {
                 if (menaceMonstre)
-                    elementPosition = ElementCell.CACA_VENT;
+                    elementPosition = ElementCell.SMELL_WIND;
                 else
-                    elementPosition = ElementCell.VENT;
+                    elementPosition = ElementCell.WIND;
             }
 
             voisinsPossible = oeil.CellsAlentour(position);
@@ -114,8 +114,8 @@ namespace IA_TP3
                 CellsInconnuesInnofensives.Remove(position);
             if (CellsMonstreSuspect.Contains(position))
                 CellsMonstreSuspect.Remove(position);
-            if (CellsCrevasseSuspecte.Contains(position))
-                CellsCrevasseSuspecte.Remove(position);
+            if (CellsTrapSuspect.Contains(position))
+                CellsTrapSuspect.Remove(position);
             if (CellsInconnuesSuspecte.Contains(position))
                 CellsInconnuesSuspecte.Remove(position);
             // METS A JOUR LES FAIT
@@ -124,19 +124,19 @@ namespace IA_TP3
 
             // SI CellObjectif est a null => FAIT Cell objectif atteinte
             if (CellObjectif == null)
-                faits.Add(Faits.Cell_BUT_ATTEINTE);
+                faits.Add(Faits.GOAL_CELL_REACHED);
 
             // SI l'agent est sur la Cell objectif => FAIT Cell objectif atteinte
             if (CellObjectif != null && position.Equals(CellObjectif))
-                faits.Add(Faits.Cell_BUT_ATTEINTE);
+                faits.Add(Faits.GOAL_CELL_REACHED);
 
-            // SI l'agent est sur portail => FAIT portail present
-            if (elementPosition.Equals(ElementCell.PORTAIL))
-                faits.Add(Faits.PORTAIL_PRESENT);
+            // SI l'agent est sur PORTAL => FAIT PORTAL present
+            if (elementPosition.Equals(ElementCell.PORTAL))
+                faits.Add(Faits.PORTAL_PRESENT);
 
             // METS A JOUR LA FRONTIERE
-            // SI Cell atteinte but atteinte && pas de portail ici => mets a jours la frontiere && FAIT nouveau voisins observés
-            if (faits.Contains(Faits.Cell_BUT_ATTEINTE) && !faits.Contains(Faits.PORTAIL_PRESENT))
+            // SI Cell atteinte but atteinte && pas de PORTAL ici => mets a jours la frontiere && FAIT nouveau voisins observés
+            if (faits.Contains(Faits.GOAL_CELL_REACHED) && !faits.Contains(Faits.PORTAL_PRESENT))
             {
                 // Mets a jours les voisins
                 foreach (KeyValuePair<Direction, Tuple<int, int>> voisin in voisins)
@@ -144,37 +144,37 @@ namespace IA_TP3
                     // SI c'est un voisin qui n'a pas encore été visité
                     if (!croyance.ContainsKey(voisin.Value))
                     {
-                        // SI on est sur une Cell vide
-                        if (elementPosition.Equals(ElementCell.VIDE))
+                        // SI on est sur une Cell EMPTY
+                        if (elementPosition.Equals(ElementCell.EMPTY))
                         {
                             // si pas deja present dans la liste
                             if (!CellsInconnuesInnofensives.Contains(voisin.Value))
                                 CellsInconnuesInnofensives.Add(voisin.Value);
                             CellsMonstreSuspect.Remove(voisin.Value);
-                            CellsCrevasseSuspecte.Remove(voisin.Value);
+                            CellsTrapSuspect.Remove(voisin.Value);
                             CellsInconnuesSuspecte.Remove(voisin.Value);
                         }
-                        // SI on est sur une Cell caca
-                        if (elementPosition.Equals(ElementCell.CACA) && !CellsInconnuesInnofensives.Contains(voisin.Value))
+                        // SI on est sur une Cell SMELL
+                        if (elementPosition.Equals(ElementCell.SMELL) && !CellsInconnuesInnofensives.Contains(voisin.Value))
                         {
                             if (!CellsMonstreSuspect.Contains(voisin.Value))
                                 CellsMonstreSuspect.Add(voisin.Value);
-                            CellsCrevasseSuspecte.Remove(voisin.Value);
+                            CellsTrapSuspect.Remove(voisin.Value);
                             CellsInconnuesSuspecte.Remove(voisin.Value);
                         }
                         // SI on est sur une Cell inconnue (on ne sait pas si c'est un monstre une crevasse ou rien)
-                        if (elementPosition.Equals(ElementCell.VENT) && !CellsInconnuesInnofensives.Contains(voisin.Value))
+                        if (elementPosition.Equals(ElementCell.WIND) && !CellsInconnuesInnofensives.Contains(voisin.Value))
                         {
                             // si pas deja present dans la liste
-                            if (!CellsCrevasseSuspecte.Contains(voisin.Value))
-                                CellsCrevasseSuspecte.Add(voisin.Value);
+                            if (!CellsTrapSuspect.Contains(voisin.Value))
+                                CellsTrapSuspect.Add(voisin.Value);
                             CellsMonstreSuspect.Remove(voisin.Value);
                             CellsInconnuesSuspecte.Remove(voisin.Value);
                         }
-                        // SI on est sur une Cell vent ou caca
-                        if (elementPosition.Equals(ElementCell.CACA_VENT) && !CellsInconnuesInnofensives.Contains(voisin.Value))
+                        // SI on est sur une Cell WIND ou SMELL
+                        if (elementPosition.Equals(ElementCell.SMELL_WIND) && !CellsInconnuesInnofensives.Contains(voisin.Value))
                         {
-                            if (!CellsCrevasseSuspecte.Contains(voisin.Value) && !CellsMonstreSuspect.Contains(voisin.Value) && !CellsInconnuesSuspecte.Contains(voisin.Value))
+                            if (!CellsTrapSuspect.Contains(voisin.Value) && !CellsMonstreSuspect.Contains(voisin.Value) && !CellsInconnuesSuspecte.Contains(voisin.Value))
                                 CellsInconnuesSuspecte.Add(voisin.Value);
                         }
                     }
@@ -189,76 +189,78 @@ namespace IA_TP3
                     faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE))
                 faits.Add(Faits.FRONTIERE_CONTIENT_INCONNU_SUR);
 
-            // SI la frontière ne contient pas d'inconnus sans risques ET contient au moins une Cell inconnue suspecte d'avoir un monstre => FAIT frontiere contient menace monstre
+            // SI la frontière ne contient pas d'inconnus sans risques ET contient au moins une case inconnue suspecte d'avoir un monstre => FAIT frontiere contient menace monstre
             if (!faits.Contains(Faits.FRONTIERE_CONTIENT_INCONNU_SUR) && !(CellsMonstreSuspect.Count == 0) &&
                     faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE))
-                faits.Add(Faits.FRONTIERE_CONTIENT_MENACE_MONSTRE);
+                faits.Add(Faits.FRONTIERE_CONTIENT_MENACE_MONSTER);
 
-            // SI la frontière ne contient pas d'inconnus sans risques ET pas de menace monstre ET contient au moins une Cell dont la menace est inconnue (monstre ou crevasse) => FAIT frontiere contient menace inconnue
-            if (!faits.Contains(Faits.FRONTIERE_CONTIENT_INCONNU_SUR) && !faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_MONSTRE) &&
+            // SI la frontière ne contient pas d'inconnus sans risques ET pas de menace monstre ET contient au moins une case dont la menace est inconnue (MONSTER ou TRAP) => FAIT frontiere contient menace inconnue
+            if (!faits.Contains(Faits.FRONTIERE_CONTIENT_INCONNU_SUR) && !faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_MONSTER) &&
                     !(CellsInconnuesSuspecte.Count == 0)
                     && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE))
                 faits.Add(Faits.FRONTIERE_CONTIENT_MENACE_INCONNUE);
 
-            // SI la frontière ne contient pas d'inconnus sans risques ET pas de menace monstre ET pas de menace inconnue ET contient au moins une Cell inconnue suspecte d'avoir une crevasse => FAIT frontiere contient menace crevasse
-            if (!faits.Contains(Faits.FRONTIERE_CONTIENT_INCONNU_SUR) && !faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_MONSTRE) &&
+            // SI la frontière ne contient pas d'inconnus sans risques ET pas de menace monstre ET pas de menace inconnue ET contient au moins une case inconnue suspecte d'avoir une crevasse => FAIT frontiere contient menace crevasse
+            if (!faits.Contains(Faits.FRONTIERE_CONTIENT_INCONNU_SUR) && !faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_MONSTER) &&
                     !faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_INCONNUE) &&
-                    !(CellsCrevasseSuspecte.Count == 0) &&
+                    !(CellsTrapSuspect.Count == 0) &&
                     faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE))
-                faits.Add(Faits.FRONTIERE_CONTIENT_MENACE_CREVASSE);
+                faits.Add(Faits.FRONTIERE_CONTIENT_MENACE_TRAP);
 
-            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de portail ici && la frontiere a une Cell sans risque => vise la Cell inconnue sans risque la plus proche de la position de l'agent
-            if (faits.Contains(Faits.Cell_BUT_ATTEINTE) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) && !faits.Contains(Faits.PORTAIL_PRESENT) &&
+            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de PORTAL ici && la frontiere a une Cell sans risque => vise la Cell inconnue sans risque la plus proche de la position de l'agent
+            if (faits.Contains(Faits.GOAL_CELL_REACHED) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) && !faits.Contains(Faits.PORTAL_PRESENT) &&
                     faits.Contains(Faits.FRONTIERE_CONTIENT_INCONNU_SUR))
             {
                 // parmis liste inconnue inoffensif prendre le + proche ( distance de manhantan)
                 CellObjectif = chercheCellProche(position, CellsInconnuesInnofensives);
             }
 
-            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de portail ici && la frontiere a une Cell menace monstre => vise la Cell menace monstre la plus proche de la position de l'agent
-            if (faits.Contains(Faits.Cell_BUT_ATTEINTE) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) && !faits.Contains(Faits.PORTAIL_PRESENT) &&
-                    faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_MONSTRE))
+            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de PORTAL ici && la frontiere a une Cell menace monstre => vise la Cell menace monstre la plus proche de la position de l'agent
+            if (faits.Contains(Faits.GOAL_CELL_REACHED) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) && !faits.Contains(Faits.PORTAL_PRESENT) &&
+                    faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_MONSTER))
             {
                 CellObjectif = chercheCellProche(position, CellsMonstreSuspect);
             }
 
-            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de portail ici && la frontiere a une Cell menace inconnue => vise la Cell menace inconnue la plus proche de la position de l'agent
-            if (faits.Contains(Faits.Cell_BUT_ATTEINTE) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) &&
-                    !faits.Contains(Faits.PORTAIL_PRESENT) && faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_INCONNUE))
+            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de PORTAL ici && la frontiere a une Cell menace inconnue => vise la Cell menace inconnue la plus proche de la position de l'agent
+            if (faits.Contains(Faits.GOAL_CELL_REACHED) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) &&
+                    !faits.Contains(Faits.PORTAL_PRESENT) && faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_INCONNUE))
             {
                 // parmis liste inconnue inoffensif prendre le + proche ( distance de manhantan)
                 CellObjectif = chercheCellProche(position, CellsInconnuesSuspecte);
             }
 
-            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de portail ici && la frontiere a une Cell menace crevasse => vise la Cell menace crevasse la plus proche de la position de l'agent
-            if (faits.Contains(Faits.Cell_BUT_ATTEINTE) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) &&
-                    !faits.Contains(Faits.PORTAIL_PRESENT) && faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_CREVASSE))
+            // SI on a atteint la Cell visée ET on a mis a jour la frontiere ET il n'y a pas de PORTAL ici && la frontiere a une Cell menace crevasse => vise la Cell menace crevasse la plus proche de la position de l'agent
+            if (faits.Contains(Faits.GOAL_CELL_REACHED) && faits.Contains(Faits.NOUVEAUX_VOISINS_OBSERVE) &&
+                    !faits.Contains(Faits.PORTAL_PRESENT) && faits.Contains(Faits.FRONTIERE_CONTIENT_MENACE_TRAP))
             {
                 // parmis liste inconnue inoffensif prendre le + proche ( distance de manhantan)
-                CellObjectif = chercheCellProche(position, CellsCrevasseSuspecte);
+                CellObjectif = chercheCellProche(position, CellsTrapSuspect);
             }
 
             // SI on est voisin avec la Cell objectif et que la menace est soit inconnue soit une menace de monstre => FAIT risque de monstre
             if (voisins.ContainsValue(CellObjectif) && (CellsMonstreSuspect.Contains(CellObjectif) || CellsInconnuesSuspecte.Contains(CellObjectif)))
-                faits.Add(Faits.RISQUE_DE_MONSTRE);
+                faits.Add(Faits.RISQUE_DE_MONSTER);
 
 
             // SI la frontière ne contient que des crevasses suspectes (de longueur 3 ou 4 cases suspectes), alors on détermine que la case à l'extremité la plus proche est sans risque
-            if(CellsInconnuesInnofensives.Count == 0 && CellsInconnuesSuspecte.Count == 0 && CellsMonstreSuspect.Count == 0 && CellsCrevasseSuspecte.Count != 0)
+            if(CellsInconnuesInnofensives.Count == 0 && CellsInconnuesSuspecte.Count == 0 && CellsMonstreSuspect.Count == 0 && CellsTrapSuspect.Count != 0)
             {
-                int dist = DistManhattan(CellsCrevasseSuspecte[0], new Tuple<int, int>(0, 0));
+                
+                int dist = DistManhattan(CellsTrapSuspect[0], new Tuple<int, int>(0, 0));
                 if (dist == 2 || dist == 3)
                 {
                     bool isDiagonale = true;
-                    for(int i = 1; i< CellsCrevasseSuspecte.Count;i++)
+                    for(int i = 1; i< CellsTrapSuspect.Count;i++)
                     {
-                        if (DistManhattan(CellsCrevasseSuspecte[i], new Tuple<int, int>(0, 0)) != dist)
+                        if (DistManhattan(CellsTrapSuspect[i], new Tuple<int, int>(0, 0)) != dist)
                         {
                             isDiagonale = false;
                         }
                     }
                     if (isDiagonale)
                     {
+                        Console.WriteLine("\n ************************* Cas probabiliste *************************");
                         Tuple<int, int> caseSelectionnee;
                         if (DistManhattan(position, new Tuple<int, int>(0, dist)) < DistManhattan(position, new Tuple<int, int>(dist, 0)))
                         {
@@ -268,7 +270,7 @@ namespace IA_TP3
                         {
                             caseSelectionnee = new Tuple<int, int>(dist, 0);
                         }
-                        croyance[caseSelectionnee] = ConnaissanceCell.SANS_RISQUE;
+                        croyance[caseSelectionnee] = BeliefCell.NO_RISK;
                     }
                 }
 
@@ -279,7 +281,7 @@ namespace IA_TP3
             // Actions
 
             // SI risque de monstre => LANCE PIERRE vers la Cell visée
-            if (faits.Contains(Faits.RISQUE_DE_MONSTRE))
+            if (faits.Contains(Faits.RISQUE_DE_MONSTER))
             {
                 Direction dirObjectif = Direction.NULL;
                 foreach (KeyValuePair<Direction, Tuple<int, int>> voisin in voisins)
@@ -287,16 +289,16 @@ namespace IA_TP3
                     {
                         dirObjectif = voisin.Key;
                     }
-                return new Tuple<Action, Direction>(Action.LANCER_PIERRE, dirObjectif);
+                return new Tuple<Action, Direction>(Action.LAUNCH_ROCK, dirObjectif);
             }
 
             
-            // SI portail present => prends le portail
-            if (faits.Contains(Faits.PORTAIL_PRESENT))
-                return new Tuple<Action, Direction>(Action.PRENDRE_PORTAIL, Direction.NULL);
+            // SI PORTAL present => prends le PORTAL
+            if (faits.Contains(Faits.PORTAL_PRESENT))
+                return new Tuple<Action, Direction>(Action.TAKE_PORTAL, Direction.NULL);
 
-            // SI pas de Portail ET pas de risque de monstre => DEPLACEMENT vers la Cell nous rapprochant le plus de la Cell objectif
-            if (!faits.Contains(Faits.PORTAIL_PRESENT) && !faits.Contains(Faits.RISQUE_DE_MONSTRE))
+            // SI pas de PORTAL ET pas de risque de monstre => DEPLACEMENT vers la Cell nous rapprochant le plus de la Cell objectif
+            if (!faits.Contains(Faits.PORTAL_PRESENT) && !faits.Contains(Faits.RISQUE_DE_MONSTER))
             {
                 // action = deplacement vers la Cell connue qui rapproche le plus
                 List<Direction> directionsSelectionne = new List<Direction>();
@@ -304,7 +306,7 @@ namespace IA_TP3
                 foreach (KeyValuePair<Direction, Tuple<int, int>> voisin in voisins)
                 {
                     // si c'est un voisin deja connu sans risque ou la Cell objectif
-                    if ((croyance.ContainsKey(voisin.Value) && croyance[voisin.Value].Equals(ConnaissanceCell.SANS_RISQUE)) ||
+                    if ((croyance.ContainsKey(voisin.Value) && croyance[voisin.Value].Equals(BeliefCell.NO_RISK)) ||
                        voisin.Value.Equals(CellObjectif))
                         // prends celui qui se rapproche le plus de l'objectif
                         if (distVoisinSelectionne > DistManhattan(voisin.Value, CellObjectif))
@@ -328,7 +330,7 @@ namespace IA_TP3
                 else
                     Console.WriteLine("IL N'Y A AUCUN ECHAPATOIRE !!!!");
 
-                return new Tuple<Action, Direction>(Action.SE_DEPLACER, directionSelectionne);
+                return new Tuple<Action, Direction>(Action.MOVE, directionSelectionne);
             }
 
             return null;
@@ -377,23 +379,23 @@ namespace IA_TP3
         {
             Dictionary<Direction, Tuple<int, int>> voisins = new Dictionary<Direction, Tuple<int, int>>();
 
-            if (voisinsPossible[Direction.HAUT])    // si possede un voisin en haut
-                voisins.Add(Direction.HAUT, new Tuple<int, int>(position.Item1 - 1, position.Item2));
-            if (voisinsPossible[Direction.BAS])    // si possede un voisin en bas
-                voisins.Add(Direction.BAS, new Tuple<int, int>(position.Item1 + 1, position.Item2));
-            if (voisinsPossible[Direction.GAUCHE])    // si possede un voisin en haut
-                voisins.Add(Direction.GAUCHE, new Tuple<int, int>(position.Item1, position.Item2 - 1));
-            if (voisinsPossible[Direction.DROITE])    // si possede un voisin en haut
-                voisins.Add(Direction.DROITE, new Tuple<int, int>(position.Item1, position.Item2 + 1));
+            if (voisinsPossible[Direction.UP])    // si possede un voisin en UP
+                voisins.Add(Direction.UP, new Tuple<int, int>(position.Item1 - 1, position.Item2));
+            if (voisinsPossible[Direction.DOWN])    // si possede un voisin en DOWN
+                voisins.Add(Direction.DOWN, new Tuple<int, int>(position.Item1 + 1, position.Item2));
+            if (voisinsPossible[Direction.LEFT])    // si possede un voisin en UP
+                voisins.Add(Direction.LEFT, new Tuple<int, int>(position.Item1, position.Item2 - 1));
+            if (voisinsPossible[Direction.RIGHT])    // si possede un voisin en UP
+                voisins.Add(Direction.RIGHT, new Tuple<int, int>(position.Item1, position.Item2 + 1));
 
             return voisins;
         }
 
         /**
          * mets a jours les croyances en cas de tir vers une Cell que l'agent suppose contenir un monstre
-         * @param CellVisee : Cell vers laquelle un tire
+         * @param CellVisee : Cell vers laquelle on tire
          */
-        public void tirMonstre(Tuple<int, int> CellVisee)
+        public void tirMONSTER(Tuple<int, int> CellVisee)
         {
 
             CellsMonstreSuspect.Remove(CellVisee);
@@ -401,7 +403,7 @@ namespace IA_TP3
             {
                 // on sait qu'elle ne peut plus avoir de montre, donc la seule menace restante est celle de la crevasse
                 CellsInconnuesSuspecte.Remove(CellVisee);
-                CellsCrevasseSuspecte.Add(CellVisee);
+                CellsTrapSuspect.Add(CellVisee);
                 CellVisee = null;
             }
             else
@@ -414,14 +416,17 @@ namespace IA_TP3
         /**
          * mets à jour les croyances en cas de mort de l'agent
          * @param pos : position à laquelle il est mort
-         * @param causeMort : cause de la mort (crevasse ou monstre)
+         * @param causeMort : cause de la mort (TRAP ou MONSTER)
          */
         public void meurt(Tuple<int, int> pos, ElementCell causeMort)
         {
             // mets a jour les connaissances
-            croyance.Add(pos, (causeMort.Equals(ElementCell.MONSTRE) ? ConnaissanceCell.MONSTRE : ConnaissanceCell.CREVASSE));
+            if (causeMort.Equals(ElementCell.MONSTER))
+                croyance[pos] = BeliefCell.MONSTER;
+            else if (causeMort.Equals(ElementCell.TRAP))
+                croyance[pos] = BeliefCell.TRAP;
             CellsInconnuesInnofensives.Remove(pos);
-            CellsCrevasseSuspecte.Remove(pos);
+            CellsTrapSuspect.Remove(pos);
             CellsMonstreSuspect.Remove(pos);
             CellsInconnuesSuspecte.Remove(pos);
             // reinitialise la Cell objectif

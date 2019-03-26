@@ -5,7 +5,7 @@ namespace IA_TP3
     public class Forest
     {
 
-        readonly int size;               // size de départ initialisée à 3
+        readonly int size;   // size de départ initialisée à 3
         static ElementCell[,] forest;
 
         public Forest(int size_)
@@ -18,7 +18,7 @@ namespace IA_TP3
 
         private void RemplieForest()
         {
-            // Place le portail et le obstacles aléatoirement
+            // Place le PORTAL et le obstacles aléatoirement
             Random rand = new Random();
             int randomValeur;
             for (int i = 0; i < size; i++)
@@ -26,95 +26,19 @@ namespace IA_TP3
                 {
                     randomValeur = rand.Next(10);
                     if (randomValeur < 2 && (i != 0 || j != 0)) // si 0 ou 1
-                        forest[i, j] = ElementCell.MONSTRE;
+                        forest[i, j] = ElementCell.MONSTER;
                     else if (randomValeur >= 2 && randomValeur < 4 && (i != 0 || j != 0)) // si 2 ou 3
-                        forest[i, j] = ElementCell.CREVASSE;
+                        forest[i, j] = ElementCell.TRAP;
                     else
-                        forest[i, j] = ElementCell.VIDE;
+                        forest[i, j] = ElementCell.EMPTY;
                 }
 
-            // placer portail
+            // placer PORTAL
             int randomLigne = rand.Next(size);
             int randomCol = rand.Next(size);
-            forest[randomLigne, randomCol] = ElementCell.PORTAIL;
+            forest[randomLigne, randomCol] = ElementCell.PORTAL;
 
-            // place les vents autour des crevasses
-            for (int i = 0; i < size; i++)
-                for (int j = 0; j < size; j++)
-                {
-                    if (forest[i, j].Equals(ElementCell.CREVASSE))
-                    {
-                        // HAUT
-                        if (i > 0)
-                        {
-                            if (!forest[i - 1, j].Equals(ElementCell.MONSTRE) && !forest[i - 1, j].Equals(ElementCell.PORTAIL))
-                                forest[i - 1, j] = ElementCell.VENT;
-                        }
-                        // BAS
-                        if (i < size - 1)
-                        {
-                            if (!forest[i + 1, j].Equals(ElementCell.MONSTRE) && !forest[i + 1, j].Equals(ElementCell.PORTAIL))
-                                forest[i + 1, j] = ElementCell.VENT;
-                        }
-                        // GAUCHE
-                        if (j > 0)
-                        {
-                            if (!forest[i, j - 1].Equals(ElementCell.MONSTRE) && !forest[i, j - 1].Equals(ElementCell.PORTAIL))
-                                forest[i, j - 1] = ElementCell.VENT;
-                        }
-                        // DROITE
-                        if (j < size - 1)
-                        {
-                            if (!forest[i, j + 1].Equals(ElementCell.MONSTRE) && !forest[i, j + 1].Equals(ElementCell.PORTAIL))
-                                forest[i, j + 1] = ElementCell.VENT;
-                        }
-                    }
-                }
-
-            // place les cacas autour des crevasses
-            for (int i = 0; i < size; i++)
-                for (int j = 0; j < size; j++)
-                {
-                    if (forest[i, j].Equals(ElementCell.MONSTRE))
-                    {
-                        // HAUT
-                        if (i > 0)
-                        {
-                            if (!forest[i - 1, j].Equals(ElementCell.CREVASSE) && !forest[i - 1, j].Equals(ElementCell.PORTAIL))
-                                if (forest[i - 1, j].Equals(ElementCell.VENT))
-                                    forest[i - 1, j] = ElementCell.CACA_VENT;
-                                else
-                                    forest[i - 1, j] = ElementCell.CACA;
-                        }
-                        // BAS
-                        if (i < size - 1)
-                        {
-                            if (!forest[i + 1, j].Equals(ElementCell.CREVASSE) && !forest[i + 1, j].Equals(ElementCell.PORTAIL))
-                                if (forest[i + 1, j].Equals(ElementCell.VENT))
-                                    forest[i + 1, j] = ElementCell.CACA_VENT;
-                                else
-                                    forest[i + 1, j] = ElementCell.CACA;
-                        }
-                        // GAUCHE
-                        if (j > 0)
-                        {
-                            if (!forest[i, j - 1].Equals(ElementCell.CREVASSE) && !forest[i, j - 1].Equals(ElementCell.PORTAIL))
-                                if (forest[i, j - 1].Equals(ElementCell.VENT))
-                                    forest[i, j - 1] = ElementCell.CACA_VENT;
-                                else
-                                    forest[i, j - 1] = ElementCell.CACA;
-                        }
-                        // DROITE
-                        if (j < size - 1)
-                        {
-                            if (!forest[i, j + 1].Equals(ElementCell.CREVASSE) && !forest[i, j + 1].Equals(ElementCell.PORTAIL))
-                                if (forest[i, j + 1].Equals(ElementCell.VENT))
-                                    forest[i, j + 1] = ElementCell.CACA_VENT;
-                                else
-                                    forest[i, j + 1] = ElementCell.CACA;
-                        }
-                    }
-                }
+            UpdateCells();
         }
 
         public ElementCell[,] getCarte()
@@ -137,6 +61,96 @@ namespace IA_TP3
         public void SetCell(Tuple<int, int> pos, ElementCell element)
         {
             forest[pos.Item1, pos.Item2] = element;
+        }
+
+        public void UpdateCells()
+        {
+
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                {
+                    if(forest[i,j].Equals(ElementCell.SMELL) || forest[i, j].Equals(ElementCell.SMELL_WIND) || forest[i, j].Equals(ElementCell.WIND))
+                    {
+                        forest[i, j] = ElementCell.EMPTY;
+                    }
+                }
+            // place les WINDs autour des crevasses
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                {
+                    if (forest[i, j].Equals(ElementCell.TRAP))
+                    {
+                        // UP
+                        if (i > 0)
+                        {
+                            if (!forest[i - 1, j].Equals(ElementCell.MONSTER) && !forest[i - 1, j].Equals(ElementCell.PORTAL))
+                                forest[i - 1, j] = ElementCell.WIND;
+                        }
+                        // DOWN
+                        if (i < size - 1)
+                        {
+                            if (!forest[i + 1, j].Equals(ElementCell.MONSTER) && !forest[i + 1, j].Equals(ElementCell.PORTAL))
+                                forest[i + 1, j] = ElementCell.WIND;
+                        }
+                        // LEFT
+                        if (j > 0)
+                        {
+                            if (!forest[i, j - 1].Equals(ElementCell.MONSTER) && !forest[i, j - 1].Equals(ElementCell.PORTAL))
+                                forest[i, j - 1] = ElementCell.WIND;
+                        }
+                        // RIGHT
+                        if (j < size - 1)
+                        {
+                            if (!forest[i, j + 1].Equals(ElementCell.MONSTER) && !forest[i, j + 1].Equals(ElementCell.PORTAL))
+                                forest[i, j + 1] = ElementCell.WIND;
+                        }
+                    }
+                }
+
+            // place les SMELLs autour des crevasses
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                {
+                    if (forest[i, j].Equals(ElementCell.MONSTER))
+                    {
+                        // UP
+                        if (i > 0)
+                        {
+                            if (!forest[i - 1, j].Equals(ElementCell.TRAP) && !forest[i - 1, j].Equals(ElementCell.PORTAL))
+                                if (forest[i - 1, j].Equals(ElementCell.WIND))
+                                    forest[i - 1, j] = ElementCell.SMELL_WIND;
+                                else
+                                    forest[i - 1, j] = ElementCell.SMELL;
+                        }
+                        // DOWN
+                        if (i < size - 1)
+                        {
+                            if (!forest[i + 1, j].Equals(ElementCell.TRAP) && !forest[i + 1, j].Equals(ElementCell.PORTAL))
+                                if (forest[i + 1, j].Equals(ElementCell.WIND))
+                                    forest[i + 1, j] = ElementCell.SMELL_WIND;
+                                else
+                                    forest[i + 1, j] = ElementCell.SMELL;
+                        }
+                        // LEFT
+                        if (j > 0)
+                        {
+                            if (!forest[i, j - 1].Equals(ElementCell.TRAP) && !forest[i, j - 1].Equals(ElementCell.PORTAL))
+                                if (forest[i, j - 1].Equals(ElementCell.WIND))
+                                    forest[i, j - 1] = ElementCell.SMELL_WIND;
+                                else
+                                    forest[i, j - 1] = ElementCell.SMELL;
+                        }
+                        // RIGHT
+                        if (j < size - 1)
+                        {
+                            if (!forest[i, j + 1].Equals(ElementCell.TRAP) && !forest[i, j + 1].Equals(ElementCell.PORTAL))
+                                if (forest[i, j + 1].Equals(ElementCell.WIND))
+                                    forest[i, j + 1] = ElementCell.SMELL_WIND;
+                                else
+                                    forest[i, j + 1] = ElementCell.SMELL;
+                        }
+                    }
+                }
         }
 
     }

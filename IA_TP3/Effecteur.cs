@@ -15,43 +15,43 @@ namespace IA_TP3
 
         public void Fait(Tuple<int, int> pos, Action action, Direction direction)
         {
-            env.informe(action, direction); // il connait pos en demandant directement à l'agent
+            env.informe(action, direction); // On connait pos en demandant directement à l'agent
 
             if (agent.IsLive())
             {
-                if (action.Equals(Action.LANCER_PIERRE))
+                if (action.Equals(Action.LAUNCH_ROCK))
                 {
                     switch (direction)
                     {
-                        case Direction.HAUT:
-                            agent.tirMonstre(new Tuple<int,int>(pos.Item1 - 1, pos.Item2));
+                        case Direction.UP:
+                            agent.tirMONSTER(new Tuple<int,int>(pos.Item1 - 1, pos.Item2));
                             break;
-                        case Direction.BAS:
-                            agent.tirMonstre(new Tuple<int,int>(pos.Item1 + 1, pos.Item2));
+                        case Direction.DOWN:
+                            agent.tirMONSTER(new Tuple<int,int>(pos.Item1 + 1, pos.Item2));
                             break;
-                        case Direction.GAUCHE:
-                            agent.tirMonstre(new Tuple<int,int>(pos.Item1, pos.Item2 - 1));
+                        case Direction.LEFT:
+                            agent.tirMONSTER(new Tuple<int,int>(pos.Item1, pos.Item2 - 1));
                             break;
-                        case Direction.DROITE:
-                            agent.tirMonstre(new Tuple<int,int>(pos.Item1, pos.Item2 + 1));
+                        case Direction.RIGHT:
+                            agent.tirMONSTER(new Tuple<int,int>(pos.Item1, pos.Item2 + 1));
                             break;
                     }
                 }
 
-                if (action.Equals(Action.SE_DEPLACER))
+                if (action.Equals(Action.MOVE))
                 {
                     switch (direction)
                     {
-                        case Direction.HAUT:
+                        case Direction.UP:
                             agent.setPosition(new Tuple<int,int>(pos.Item1 - 1, pos.Item2));
                             break;
-                    case Direction.BAS:
+                    case Direction.DOWN:
                             agent.setPosition(new Tuple<int,int>(pos.Item1 + 1, pos.Item2));
                             break;
-                    case Direction.GAUCHE:
+                    case Direction.LEFT:
                             agent.setPosition(new Tuple<int,int>(pos.Item1, pos.Item2 - 1));
                             break;
-                    case Direction.DROITE:
+                    case Direction.RIGHT:
                             agent.setPosition(new Tuple<int,int>(pos.Item1, pos.Item2 + 1));
                             break;
                     }

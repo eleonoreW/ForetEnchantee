@@ -21,15 +21,14 @@ namespace IA_TP3
                 }
                 agent.etablirFait();
                 Tuple<Action, Direction> actionChoisie = agent.getActionChoisie();
-
+                
                 Console.WriteLine("MESURE DE PERFORMANCE : " + env.getMesurePerf());
                 if (actionChoisie != null)
                 {
-                    if (actionChoisie.Item1 == Action.PRENDRE_PORTAIL)
+                    if (actionChoisie.Item1 == Action.TAKE_PORTAL)
                         Console.WriteLine("Prochaine action choisie : " + actionChoisie.Item1);
                     else
-                        Console.WriteLine("Prochaine action choisie : " + actionChoisie.Item1 + " vers " +
-                                (actionChoisie.Item2 == Direction.DROITE || actionChoisie.Item2 == Direction.GAUCHE ? "la " : "le ") + actionChoisie.Item2);
+                        Console.WriteLine("Prochaine action choisie : " + actionChoisie.Item1 + " " +actionChoisie.Item2);
                 }
                 
                 agent = env.getAgent();
@@ -37,8 +36,12 @@ namespace IA_TP3
                 Afficher(agent, env);
                 Console.ReadKey();
                 // Console.Clear();
+                
+                Console.WriteLine();
                 Console.WriteLine(new String('*',80));
                 Console.WriteLine(new String('*', 80));
+
+                Console.WriteLine();
             }
 		}
 

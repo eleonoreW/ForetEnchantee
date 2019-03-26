@@ -12,23 +12,23 @@ namespace IA_TP3
         {
 
         }
-        public bool sonder(Tuple<int, int> pos)
+        public bool Sonder(Tuple<int, int> pos)
         {
-            return forest.GetCell(pos).Equals(ElementCell.PORTAIL);
+            return forest.GetCell(pos).Equals(ElementCell.PORTAL);
         }
 
         public Dictionary<Direction, bool> CellsAlentour(Tuple<int, int> pos)
         {
             Dictionary<Direction, bool> voisinsPossibles = new Dictionary<Direction,bool>();
 
-            // HAUT
-            voisinsPossibles.Add(Direction.HAUT, forest.GetCell(new Tuple<int,int>(pos.Item1 - 1, pos.Item2)) != ElementCell.NULL);
-            // BAS
-            voisinsPossibles.Add(Direction.BAS, forest.GetCell(new Tuple<int,int>(pos.Item1 + 1, pos.Item2)) != ElementCell.NULL);
-            // GAUCHE
-            voisinsPossibles.Add(Direction.GAUCHE, forest.GetCell(new Tuple<int,int>(pos.Item1, pos.Item2 - 1)) != ElementCell.NULL);
-            // DROITE
-            voisinsPossibles.Add(Direction.DROITE, forest.GetCell(new Tuple<int,int>(pos.Item1, pos.Item2 + 1)) != ElementCell.NULL);
+            // UP
+            voisinsPossibles.Add(Direction.UP, forest.GetCell(new Tuple<int,int>(pos.Item1 - 1, pos.Item2)) != ElementCell.NULL);
+            // DOWN
+            voisinsPossibles.Add(Direction.DOWN, forest.GetCell(new Tuple<int,int>(pos.Item1 + 1, pos.Item2)) != ElementCell.NULL);
+            // LEFT
+            voisinsPossibles.Add(Direction.LEFT, forest.GetCell(new Tuple<int,int>(pos.Item1, pos.Item2 - 1)) != ElementCell.NULL);
+            // RIGHT
+            voisinsPossibles.Add(Direction.RIGHT, forest.GetCell(new Tuple<int,int>(pos.Item1, pos.Item2 + 1)) != ElementCell.NULL);
 
             return voisinsPossibles;
         }
