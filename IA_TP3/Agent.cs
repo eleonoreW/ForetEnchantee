@@ -58,12 +58,6 @@ namespace IA_TP3
             }
             sonderEnvironement();
             actionChoisie = majEtat();
-            //actionChoisie = determineAction();
-            if (actionChoisie != null)
-            {
-                Console.WriteLine(actionChoisie.Item1.ToString() + (actionChoisie.Item2 == Direction.NULL ? "" : " : " + actionChoisie.Item2));
-                Console.WriteLine("---------------------------------------");
-            }
         }
 
         /**
@@ -177,7 +171,7 @@ namespace IA_TP3
                             CellsMonstreSuspect.Remove(voisin.Value);
                             CellsInconnuesSuspecte.Remove(voisin.Value);
                         }
-                        // SI on est sur une Cell vent
+                        // SI on est sur une Cell vent ou caca
                         if (elementPosition.Equals(ElementCell.CACA_VENT) && !CellsInconnuesInnofensives.Contains(voisin.Value))
                         {
                             if (!CellsCrevasseSuspecte.Contains(voisin.Value) && !CellsMonstreSuspect.Contains(voisin.Value) && !CellsInconnuesSuspecte.Contains(voisin.Value))
@@ -248,6 +242,42 @@ namespace IA_TP3
             if (voisins.ContainsValue(CellObjectif) && (CellsMonstreSuspect.Contains(CellObjectif) || CellsInconnuesSuspecte.Contains(CellObjectif)))
                 faits.Add(Faits.RISQUE_DE_MONSTRE);
 
+
+            // SI la frontière ne contient que des crevasses suspectes (de longueur 3 ou 4 cases suspectes), alors on détermine que la case à l'extremité la plus proche est sans risque
+            if(CellsInconnuesInnofensives.Count == 0 && CellsInconnuesSuspecte.Count == 0 && CellsMonstreSuspect.Count == 0 && CellsCrevasseSuspecte.Count != 0)
+            {
+                int dist = DistManhattan(CellsCrevasseSuspecte[0], new Tuple<int, int>(0, 0));
+                if (dist == 2 || dist == 3)
+                {
+                    bool isDiagonale = true;
+                    for(int i = 1; i< CellsCrevasseSuspecte.Count;i++)
+                    {
+                        if (DistManhattan(CellsCrevasseSuspecte[i], new Tuple<int, int>(0, 0)) != dist)
+                        {
+                            isDiagonale = false;
+                        }
+                    }
+                    if (isDiagonale)
+                    {
+                        Tuple<int, int> caseSelectionnee;
+                        if (DistManhattan(position, new Tuple<int, int>(0, dist)) < DistManhattan(position, new Tuple<int, int>(dist, 0)))
+                        {
+                            caseSelectionnee = new Tuple<int, int>(0, dist);
+                        }
+                        else
+                        {
+                            caseSelectionnee = new Tuple<int, int>(dist, 0);
+                        }
+                        croyance[caseSelectionnee] = ConnaissanceCell.SANS_RISQUE;
+                    }
+                }
+
+
+            }
+
+
+            // Actions
+
             // SI risque de monstre => LANCE PIERRE vers la Cell visée
             if (faits.Contains(Faits.RISQUE_DE_MONSTRE))
             {
@@ -260,7 +290,7 @@ namespace IA_TP3
                 return new Tuple<Action, Direction>(Action.LANCER_PIERRE, dirObjectif);
             }
 
-
+            
             // SI portail present => prends le portail
             if (faits.Contains(Faits.PORTAIL_PRESENT))
                 return new Tuple<Action, Direction>(Action.PRENDRE_PORTAIL, Direction.NULL);
@@ -286,7 +316,7 @@ namespace IA_TP3
                         else if (distVoisinSelectionne == DistManhattan(voisin.Value, CellObjectif))
                             directionsSelectionne.Add(voisin.Key);
                 }
-
+                
                 // si plusieurs voisins sans a distance égale, en sélectionne un aléatoirement pour éviter les boucles
                 Direction directionSelectionne = Direction.NULL;
                 if (!(directionsSelectionne.Count == 0))

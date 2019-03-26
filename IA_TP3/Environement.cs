@@ -103,7 +103,6 @@ namespace IA_TP3
                 {
                     agent.meurt(CellVisée, Forest.GetCell(CellVisée));
                     majMesurePerf(Action.MOURIR);
-                    Console.WriteLine("je suis mouru");
                     // revient en 0,0
                     agent.setPosition(new Tuple<int,int>(0, 0));
                 }

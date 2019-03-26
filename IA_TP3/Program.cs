@@ -22,8 +22,7 @@ namespace IA_TP3
                 agent.etablirFait();
                 Tuple<Action, Direction> actionChoisie = agent.getActionChoisie();
 
-                Console.WriteLine("MESURE DE PERFORMENCE : " + env.getMesurePerf());
-                Console.WriteLine("Faits de l'agent : " + agent.getFaits());
+                Console.WriteLine("MESURE DE PERFORMANCE : " + env.getMesurePerf());
                 if (actionChoisie != null)
                 {
                     if (actionChoisie.Item1 == Action.PRENDRE_PORTAIL)
@@ -34,15 +33,17 @@ namespace IA_TP3
                 }
                 
                 agent = env.getAgent();
+                Console.WriteLine();
                 Afficher(agent, env);
                 Console.ReadKey();
-				Console.Clear();
-			}
+                // Console.Clear();
+                Console.WriteLine(new String('*',80));
+                Console.WriteLine(new String('*', 80));
+            }
 		}
 
         private static void Afficher(Agent agent, Environement env)
         {
-            Console.WriteLine(agent.getPosition().Item1 +" "+ agent.getPosition().Item2);
             string str;
             int size = env.GetForest().GetSize();
             for (int i = 0; i < size; i++)
@@ -58,9 +59,9 @@ namespace IA_TP3
                     str += env.GetForest().GetCell(new Tuple<int,int>(i, j));
 
                     if(agent.getPosition().Item1 == i && agent.getPosition().Item2 == j){
-                        str += "** agent **";
+                        str += " *A*";
                     }
-                    str += "|";
+                    str += " | ";
                     Console.Write(str);
                 }
                 Console.WriteLine();
